@@ -1,5 +1,10 @@
 # Job-Hunt Copilot
 
+[![CI](https://github.com/shailender1611/job-hunt-copilot/actions/workflows/ci.yml/badge.svg)](https://github.com/shailender1611/job-hunt-copilot/actions/workflows/ci.yml)
+![Python](https://img.shields.io/badge/python-3.11%20%7C%203.12-blue)
+![LangGraph](https://img.shields.io/badge/LangGraph-agentic-purple)
+![License: MIT](https://img.shields.io/badge/license-MIT-green)
+
 Multi-agent AI copilot that tailors your resume, scores job fit, and drafts cover letters.
 Built with **LangGraph**, **LangChain**, **RAG** and **human-in-the-loop** review. FastAPI + Streamlit.
 

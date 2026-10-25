@@ -20,3 +20,8 @@ class CopilotState(BaseModel):
     fit: FitAssessment | None = None
     tailored: TailoredApplication | None = None
     grounding_warnings: list[str] = Field(default_factory=list)
+
+    # human-in-the-loop
+    feedback: str | None = None
+    revisions: int = 0
+    approved: bool = False

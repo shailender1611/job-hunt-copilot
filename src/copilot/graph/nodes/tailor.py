@@ -23,16 +23,25 @@ def generate_tailored(
     job: JobPosting,
     fit: FitAssessment,
     llm: Runnable[Any, Any] | None = None,
+    *,
+    previous: TailoredApplication | None = None,
+    feedback: str | None = None,
 ) -> TailoredApplication:
+    """Draft application material; on a revision, pass the previous draft and feedback."""
     llm = llm or get_llm(schema=TailoredApplication)
-    messages = [
-        SystemMessage(load_prompt("tailor")),
-        HumanMessage(
-            f"<resume>\n{resume.model_dump_json(exclude_none=True)}\n</resume>\n"
-            f"<job_posting>\n{job.model_dump_json(exclude_none=True)}\n</job_posting>\n"
-            f"<fit_assessment>\n{fit.model_dump_json()}\n</fit_assessment>"
-        ),
-    ]
+    content = (
+        f"<resume>\n{resume.model_dump_json(exclude_none=True)}\n</resume>\n"
+        f"<job_posting>\n{job.model_dump_json(exclude_none=True)}\n</job_posting>\n"
+        f"<fit_assessment>\n{fit.model_dump_json()}\n</fit_assessment>"
+    )
+    if previous is not None and feedback:
+        content += (
+            f"\n<previous_draft>\n{previous.model_dump_json()}\n</previous_draft>\n"
+            f"<reviewer_feedback>\n{feedback}\n</reviewer_feedback>\n"
+            "Revise the previous draft to address the reviewer feedback. "
+            "The truthfulness rules still apply."
+        )
+    messages = [SystemMessage(load_prompt("tailor")), HumanMessage(content)]
     result = llm.invoke(messages)
     if not isinstance(result, TailoredApplication):
         raise TypeError(f"Expected TailoredApplication from LLM, got {type(result).__name__}")

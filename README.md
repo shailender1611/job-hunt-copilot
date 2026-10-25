@@ -14,7 +14,7 @@ Built with **LangGraph**, **LangChain**, **RAG** and **human-in-the-loop** revie
 - [x] Fit scoring & skill-gap analysis: LangGraph with parallel parsing
 - [ ] RAG over past achievements
 - [x] Tailored resume bullets + cover letter, with a hallucination guard
-- [ ] Human-in-the-loop approval
+- [x] Human-in-the-loop approval: LangGraph interrupt, revise loop, checkpointing
 - [ ] FastAPI backend + Streamlit UI
 - [ ] Application tracker
 - [ ] CI, Docker, deployment

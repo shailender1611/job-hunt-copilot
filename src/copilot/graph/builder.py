@@ -1,21 +1,28 @@
 """Wire the nodes into a LangGraph StateGraph.
 
     START ─┬─► parse_resume ─┐
-           └─► parse_jd ─────┴─► analyze_fit ─► tailor ─► END
+           └─► parse_jd ─────┴─► analyze_fit ─► tailor ─► human_review ─► END
+                                                  ▲            │
+                                                  └── revise ──┘
 
 parse_resume and parse_jd have no dependency on each other, so LangGraph runs
 them in the same superstep (in parallel); analyze_fit waits for both.
+human_review interrupts the run; the checkpointer persists state so the run can
+be resumed later with the reviewer's decision.
 """
 
 from collections.abc import Callable
 from typing import Any
 
 from langchain_core.runnables import Runnable
+from langgraph.checkpoint.base import BaseCheckpointSaver
+from langgraph.checkpoint.memory import InMemorySaver
 from langgraph.graph import END, START, StateGraph
 from langgraph.graph.state import CompiledStateGraph
 from pydantic import BaseModel
 
 from copilot.graph.nodes.analyze_fit import assess_fit
+from copilot.graph.nodes.human_review import human_review, route_after_review
 from copilot.graph.nodes.parse_jd import parse_jd
 from copilot.graph.nodes.parse_resume import parse_resume
 from copilot.graph.nodes.tailor import enforce_grounding, generate_tailored
@@ -34,6 +41,7 @@ def default_llm_factory(schema: type[BaseModel]) -> Runnable[Any, Any]:
 
 def build_graph(
     llm_factory: LLMFactory = default_llm_factory,
+    checkpointer: BaseCheckpointSaver[Any] | None = None,
 ) -> CompiledStateGraph[Any, Any, Any, Any]:
     def parse_resume_node(state: CopilotState) -> dict[str, Any]:
         return {"resume": parse_resume(state.resume_text, llm=llm_factory(Resume))}
@@ -50,7 +58,12 @@ def build_graph(
     def tailor_node(state: CopilotState) -> dict[str, Any]:
         assert state.resume is not None and state.job is not None and state.fit is not None
         draft = generate_tailored(
-            state.resume, state.job, state.fit, llm=llm_factory(TailoredApplication)
+            state.resume,
+            state.job,
+            state.fit,
+            llm=llm_factory(TailoredApplication),
+            previous=state.tailored,
+            feedback=state.feedback,
         )
         tailored, warnings = enforce_grounding(state.resume, draft)
         return {"tailored": tailored, "grounding_warnings": warnings}
@@ -60,10 +73,14 @@ def build_graph(
     graph.add_node("parse_jd", parse_jd_node)
     graph.add_node("analyze_fit", analyze_fit_node)
     graph.add_node("tailor", tailor_node)
+    graph.add_node("human_review", human_review)
 
     graph.add_edge(START, "parse_resume")
     graph.add_edge(START, "parse_jd")
     graph.add_edge(["parse_resume", "parse_jd"], "analyze_fit")
     graph.add_edge("analyze_fit", "tailor")
-    graph.add_edge("tailor", END)
-    return graph.compile()
+    graph.add_edge("tailor", "human_review")
+    graph.add_conditional_edges("human_review", route_after_review, ["tailor", END])
+
+    # interrupt() needs a checkpointer; in-memory is fine for one process.
+    return graph.compile(checkpointer=checkpointer or InMemorySaver())

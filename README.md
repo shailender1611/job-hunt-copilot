@@ -15,7 +15,8 @@ Built with **LangGraph**, **LangChain**, **RAG** and **human-in-the-loop** revie
 - [ ] RAG over past achievements
 - [x] Tailored resume bullets + cover letter, with a hallucination guard
 - [x] Human-in-the-loop approval: LangGraph interrupt, revise loop, checkpointing
-- [ ] FastAPI backend + Streamlit UI
+- [x] Streamlit UI with review / revise / approve and Markdown export
+- [ ] FastAPI backend
 - [ ] Application tracker
 - [ ] CI, Docker, deployment
 
@@ -29,13 +30,17 @@ cd job-hunt-copilot
 uv sync
 cp .env.example .env   # add your API keys
 uv run pytest
+uv run streamlit run ui/streamlit_app.py
 ```
+
+No key in `.env`? The app asks for a Gemini key in the sidebar and uses it only for your session.
 
 ## Project layout
 
 ```
-src/copilot/   application package
-tests/         unit and integration tests
+src/copilot/   application package (graph, nodes, schemas, prompts, service)
+ui/            Streamlit front end
+tests/         unit, integration and headless UI tests
 ```
 
 ## License

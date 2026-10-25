@@ -9,7 +9,8 @@ Built with **LangGraph**, **LangChain**, **RAG** and **human-in-the-loop** revie
 
 - [x] Project scaffold (uv, ruff, mypy, pytest, typed settings)
 - [x] Pluggable LLM provider (Gemini / Groq) with automatic fallback
-- [ ] Resume parser + JD parser (structured output)
+- [x] Resume parser: PDF/TXT/MD loader + structured extraction
+- [ ] JD parser (structured output)
 - [ ] Fit scoring & skill-gap analysis (LangGraph)
 - [ ] RAG over past achievements
 - [ ] Tailored resume bullets + cover letter

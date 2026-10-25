@@ -11,7 +11,7 @@ Built with **LangGraph**, **LangChain**, **RAG** and **human-in-the-loop** revie
 - [x] Pluggable LLM provider (Gemini / Groq) with automatic fallback
 - [x] Resume parser: PDF/TXT/MD loader + structured extraction
 - [x] JD parser: must-have vs nice-to-have skills, seniority, experience
-- [ ] Fit scoring & skill-gap analysis (LangGraph)
+- [x] Fit scoring & skill-gap analysis: LangGraph with parallel parsing
 - [ ] RAG over past achievements
 - [ ] Tailored resume bullets + cover letter
 - [ ] Human-in-the-loop approval

@@ -1,0 +1,8 @@
+[browser]
+gatherUsageStats = false
+
+[server]
+maxUploadSize = 5  # MB; resumes are small
+
+[theme]
+primaryColor = "#4F46E5"

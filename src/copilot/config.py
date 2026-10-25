@@ -6,13 +6,21 @@ from typing import Literal
 from pydantic import SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+LLMProvider = Literal["gemini", "groq"]
+
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
     # LLM
-    llm_provider: Literal["gemini", "groq"] = "gemini"
-    llm_model: str = "gemini-2.5-flash"
+    llm_provider: LLMProvider = "gemini"
+    llm_fallback_enabled: bool = True
+    llm_temperature: float = 0.2
+    llm_timeout_seconds: float = 60.0
+    llm_max_retries: int = 2
+    gemini_model: str = "gemini-2.5-flash"
+    groq_model: str = "llama-3.3-70b-versatile"
+    embedding_model: str = "gemini-embedding-001"
     google_api_key: SecretStr | None = None
     groq_api_key: SecretStr | None = None
 

@@ -8,7 +8,7 @@ Built with **LangGraph**, **LangChain**, **RAG** and **human-in-the-loop** revie
 ## Roadmap
 
 - [x] Project scaffold (uv, ruff, mypy, pytest, typed settings)
-- [ ] Pluggable LLM provider (Gemini / Groq)
+- [x] Pluggable LLM provider (Gemini / Groq) with automatic fallback
 - [ ] Resume parser + JD parser (structured output)
 - [ ] Fit scoring & skill-gap analysis (LangGraph)
 - [ ] RAG over past achievements

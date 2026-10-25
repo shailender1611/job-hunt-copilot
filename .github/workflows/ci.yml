@@ -29,6 +29,11 @@ jobs:
       - name: Install dependencies
         run: uv sync --locked
 
+      - name: requirements.txt matches uv.lock
+        run: |
+          uv export --no-dev --no-hashes --no-emit-project -o requirements.txt
+          git diff --exit-code requirements.txt
+
       - name: Lint
         run: |
           uv run ruff format --check src tests ui
@@ -40,3 +45,21 @@ jobs:
       - name: Test
         # No API keys in CI: every LLM call is replaced by a fake.
         run: uv run pytest --cov=copilot --cov-report=term-missing
+
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build image
+        run: docker build -t job-hunt-copilot .
+
+      - name: Boot test
+        run: |
+          docker run -d --name app -p 8501:8501 job-hunt-copilot
+          for i in $(seq 1 30); do
+            if curl -fs http://localhost:8501/_stcore/health; then echo " healthy"; exit 0; fi
+            sleep 2
+          done
+          docker logs app
+          exit 1

@@ -1,5 +1,12 @@
 """Streamlit front end. Run with: uv run streamlit run ui/streamlit_app.py"""
 
+import sys
+from pathlib import Path
+
+# Hosts that install dependencies but not the project itself (e.g. Streamlit
+# Community Cloud) need src/ on the path to import the copilot package.
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
+
 import streamlit as st
 from pydantic import SecretStr, ValidationError
 

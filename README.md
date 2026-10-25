@@ -13,7 +13,7 @@ Built with **LangGraph**, **LangChain**, **RAG** and **human-in-the-loop** revie
 - [x] JD parser: must-have vs nice-to-have skills, seniority, experience
 - [x] Fit scoring & skill-gap analysis: LangGraph with parallel parsing
 - [ ] RAG over past achievements
-- [ ] Tailored resume bullets + cover letter
+- [x] Tailored resume bullets + cover letter, with a hallucination guard
 - [ ] Human-in-the-loop approval
 - [ ] FastAPI backend + Streamlit UI
 - [ ] Application tracker

@@ -1,7 +1,7 @@
 """Wire the nodes into a LangGraph StateGraph.
 
     START ─┬─► parse_resume ─┐
-           └─► parse_jd ─────┴─► analyze_fit ─► END
+           └─► parse_jd ─────┴─► analyze_fit ─► tailor ─► END
 
 parse_resume and parse_jd have no dependency on each other, so LangGraph runs
 them in the same superstep (in parallel); analyze_fit waits for both.
@@ -18,9 +18,10 @@ from pydantic import BaseModel
 from copilot.graph.nodes.analyze_fit import assess_fit
 from copilot.graph.nodes.parse_jd import parse_jd
 from copilot.graph.nodes.parse_resume import parse_resume
+from copilot.graph.nodes.tailor import enforce_grounding, generate_tailored
 from copilot.graph.skills import compute_skill_match
 from copilot.llm import get_llm
-from copilot.schemas import FitAssessment, JobPosting, Resume
+from copilot.schemas import FitAssessment, JobPosting, Resume, TailoredApplication
 from copilot.schemas.state import CopilotState
 
 # Given an output schema, return a runnable that produces it. Tests inject fakes.
@@ -46,13 +47,23 @@ def build_graph(
         fit = assess_fit(state.resume, state.job, match, llm=llm_factory(FitAssessment))
         return {"skill_match": match, "fit": fit}
 
+    def tailor_node(state: CopilotState) -> dict[str, Any]:
+        assert state.resume is not None and state.job is not None and state.fit is not None
+        draft = generate_tailored(
+            state.resume, state.job, state.fit, llm=llm_factory(TailoredApplication)
+        )
+        tailored, warnings = enforce_grounding(state.resume, draft)
+        return {"tailored": tailored, "grounding_warnings": warnings}
+
     graph = StateGraph(CopilotState)
     graph.add_node("parse_resume", parse_resume_node)
     graph.add_node("parse_jd", parse_jd_node)
     graph.add_node("analyze_fit", analyze_fit_node)
+    graph.add_node("tailor", tailor_node)
 
     graph.add_edge(START, "parse_resume")
     graph.add_edge(START, "parse_jd")
     graph.add_edge(["parse_resume", "parse_jd"], "analyze_fit")
-    graph.add_edge("analyze_fit", END)
+    graph.add_edge("analyze_fit", "tailor")
+    graph.add_edge("tailor", END)
     return graph.compile()
